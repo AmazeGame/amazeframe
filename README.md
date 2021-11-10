@@ -1,0 +1,2 @@
+# amazeframe
+Framework of AmazeGame
