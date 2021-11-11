@@ -1,0 +1,15 @@
+{application, amazeframe,
+ [{description, "Framwork of AmazeGame"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {amazeframe_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["MIT License"]},
+  {links, []}
+ ]}.
