@@ -1,0 +1,26 @@
+%%%-------------------------------------------------------------------
+%%% @author adrianx 
+%%% @email  adrianx.lau@gmail.com adrianx@163.com
+%%% @copyright (C) 2021, Amaze Game framwork
+%%% @doc
+%%%
+%%% @end
+%%% Created : 2021.10.28
+%%%-------------------------------------------------------------------
+%%%
+{application, ag_node, [
+    {description, "An application to check node."},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        ra,
+        ag_debuglogger, 
+        ag_cluster,     %% ag_database
+        ag_idcreator    %% ag_debuglogger ag_eventdispatcher
+
+    ]},
+    {mod, {ag_node_app, []}},
+    {env, []}
+]}.

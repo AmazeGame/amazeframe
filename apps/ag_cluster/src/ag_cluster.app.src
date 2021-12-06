@@ -1,0 +1,20 @@
+%%%-------------------------------------------------------------------
+%%% @author BlackCat 
+%%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
+%%% @copyright (C) 2021, AmazeGame
+%%% @doc
+%%% @end
+%%% Created : 2021.11.08
+%%%-------------------------------------------------------------------
+{application, ag_cluster, [
+    {description, "Core Application for cluster"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        ag_database % ag_eventdispatcher
+    ]},
+    {mod, {ag_cluster_app, []}},
+    {env, []}
+]}.
