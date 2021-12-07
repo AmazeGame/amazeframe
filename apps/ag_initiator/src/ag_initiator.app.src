@@ -1,0 +1,15 @@
+{application, ag_initiator,
+ [{description, "Amaze Game Initiator for basic facilities"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {ag_initiator_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["MIT License"]},
+  {links, []}
+ ]}.

@@ -1,0 +1,14 @@
+{application, ag_config,
+ [    {description, "An application for config loading."},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {ag_config_app, []}},
+  {applications,
+   [
+        kernel,
+        stdlib
+        ]},
+  {env,[]},
+  {licenses, ["MIT License"]},
+  {links, []}
+ ]}.

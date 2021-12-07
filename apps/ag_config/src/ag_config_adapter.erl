@@ -8,15 +8,8 @@
 %%% Created : 2021.10.28
 %%%-------------------------------------------------------------------
 %%%
-{application, ag_node, [
-    {description, "An application to check node."},
-    {vsn, "0.1.0"},
-    {registered, []},
-    {applications, [
-        kernel,
-        stdlib,
-        ra
-    ]},
-    {mod, {ag_node_app, []}},
-    {env, []}
-]}.
+-module(ag_config_adapter).
+
+
+-callback init_config(Args :: map()) ->
+    ok | loading | {error, term()}.

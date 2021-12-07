@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% @author BlackCat 
+%%% @author ayongbc <ayongbc@sina.com> 
 %%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
 %%% @copyright (C) 2021, AmazeGame
 %%% @doc

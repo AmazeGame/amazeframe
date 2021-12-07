@@ -4,20 +4,17 @@
 %%% @copyright (C) 2021, AmazeGame
 %%% @doc
 %%% @end
-%%% Created : 2021.11.08
+%%% Created : 2021.11.09
 %%%-------------------------------------------------------------------
--module(ag_cluster_mongodb_worker).
+-module(agi_codereloader).
 
--behaviour(gen_server).
--include("ag_cluster.hrl").
 -include_lib("ag_base/include/agb_debuglogger.hrl").
+-behaviour(gen_server).
+
 %% API
 -export([start_link/0]).
--export([
-    add_table/4,
-    get_table/1,
-    check_table/1
-]).
+-export([self_node_reload/0]).
+-export([all_node_reload/0]).
 
 %% gen_server callbacks
 -export([
@@ -28,48 +25,12 @@
     terminate/2,
     code_change/3
 ]).
-
 -define(SERVER, ?MODULE).
-
--define(TABLE_ETS, 'CLUSTER_TABLE_ETS').
-
--record(state, {table_config = [] :: [tuple()]}).
+-record(state, {}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
--spec add_table(Table :: atom(), Attributes :: list(), Indices :: list(),
-    TTL :: non_neg_integer()
-) ->
-    ok.
-add_table(Table, Attributes, Indices, TTL) ->
-    agb_ets:put(?TABLE_ETS, #table_config{table = Table, attribute = Attributes, index = Indices, ttl = TTL}),
-    ok.
-
--spec get_table(Table :: atom()) ->
-    tuple().
-get_table(TableName) ->
-    case agb_ets:lookup(?TABLE_ETS, TableName) of
-        [] ->
-            notfound;
-        Object ->
-            Object
-    end.
-
--spec check_table(TableNames :: [atom()]) ->
-    boolean().
-check_table(TableNames) ->
-    lists:all(
-        fun(TableName) ->
-            case agb_ets:lookup(?TABLE_ETS, TableName) of
-                [] ->
-                    false;
-                _ ->
-                    true
-            end
-        end,
-        TableNames
-    ).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -77,6 +38,15 @@ check_table(TableNames) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
+
+-spec self_node_reload() -> ['error' | 'reload' | 'reload_but_test_failed'].
+self_node_reload() ->
+    reload_changed_modules().
+
+-spec all_node_reload() -> term().
+all_node_reload() ->
+    erlang:send(?MODULE, reload_modules).
+
 -spec(start_link() ->
     {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
 start_link() ->
@@ -101,10 +71,7 @@ start_link() ->
     {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
     {stop, Reason :: term()} | ignore).
 init([]) ->
-    ?LOG_DEBUG("ag_cluster_redis_worker init"),
-    agb_ets:init(?TABLE_ETS, [{keypos, #table_config.table}]),
-    init_mongodb_pool(),
-    {ok, #state{table_config = []}}.
+    {ok, #state{}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -114,8 +81,7 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 -spec(handle_call(Request :: term(), From :: {pid(), Tag :: term()},
-    State :: #state{}
-) ->
+    State :: #state{}) ->
     {reply, Reply :: term(), NewState :: #state{}} |
     {reply, Reply :: term(), NewState :: #state{}, timeout() | hibernate} |
     {noreply, NewState :: #state{}} |
@@ -136,6 +102,9 @@ handle_call(_Request, _From, State) ->
     {noreply, NewState :: #state{}} |
     {noreply, NewState :: #state{}, timeout() | hibernate} |
     {stop, Reason :: term(), NewState :: #state{}}).
+handle_cast(notify_reload, State) ->
+    all_changed_reload(),
+    {noreply, State};
 handle_cast(_Request, State) ->
     {noreply, State}.
 
@@ -153,6 +122,10 @@ handle_cast(_Request, State) ->
     {noreply, NewState :: #state{}} |
     {noreply, NewState :: #state{}, timeout() | hibernate} |
     {stop, Reason :: term(), NewState :: #state{}}).
+handle_info(reload_modules, State) ->
+    all_changed_reload(),
+    notify_nodes(),
+    {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -168,9 +141,7 @@ handle_info(_Info, State) ->
 %% @end
 %%--------------------------------------------------------------------
 -spec(terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()),
-    State :: #state{}
-) ->
-    term()).
+    State :: #state{}) -> term()).
 terminate(_Reason, _State) ->
     ok.
 
@@ -191,16 +162,62 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+reload_changed_modules() ->
+    do_reload_modules(all_changed()).
 
-init_mongodb_pool() ->
-    case application:get_env(ag_cluster_mongodb_adapter) of
-        undefined ->
-            ?LOG_ERROR("ag_cluster_redis_worker init_redis_pool error notfound config"),
-            throw({?MODULE, "notfound config"});
-        {ok, Config} ->
-            Pool = proplists:get_value(pools, Config),
-            ag_cluster_config:put(mongodb_pool, Pool),
-            Opts = proplists:get_value(option, Config),
-            agdb_manager:add_pool(Pool, mongodb, Opts)
+do_reload_modules(Modules) ->
+    ?LOG_DEBUG("do_reload_modules ~p~n", [Modules]),
+    % [begin code:purge(M), code:load_file(M) end || M <- Modules].
+    [begin reload(M) end || M <- Modules].
+
+all_changed_reload() ->
+    [reload(M) || {M, Fn} <- code:all_loaded(), is_list(Fn), is_changed(M)].
+
+is_changed(M) ->
+    try
+        module_vsn(M:module_info()) =/= module_vsn(code:get_object_code(M))
+    catch _:_ ->
+        false
     end.
 
+module_vsn({M, Beam, _Fn}) ->
+    {ok, {M, Vsn}} = beam_lib:version(Beam),
+    Vsn;
+module_vsn(L) when is_list(L) ->
+    {_, Attrs} = lists:keyfind(attributes, 1, L),
+    {_, Vsn} = lists:keyfind(vsn, 1, Attrs),
+    Vsn.
+
+notify_nodes() ->
+    Nodes = nodes(),
+    [gen_server:cast({?MODULE, Node}, notify_reload) || Node <- Nodes],
+    ok.
+
+reload(Module) ->
+    ?LOG_DEBUG("reload:~p~n", [Module]),
+    code:purge(Module),
+    case code:load_file(Module) of
+        {module, Module} ->
+            case erlang:function_exported(Module, test, 0) of
+                true ->
+                    ?LOG_INFO(" - Calling ~p:test() ...", [Module]),
+                    case catch Module:test() of
+                        ok ->
+                            ?LOG_INFO("[~p] test is finished.~n", [Module]),
+                            reload;
+                        Reason ->
+                            ?LOG_INFO(" fail: ~p.~n", [Reason]),
+                            reload_but_test_failed
+                    end;
+                false ->
+                    reload
+            end;
+        {error, Reason} ->
+            ?LOG_INFO(" fail: ~p.~n", [Reason]),
+            error
+    end.
+
+%% @spec all_changed() -> [atom()]
+%% @doc Return a list of beam modules that have changed.
+all_changed() ->
+    [M || {M, Fn} <- code:all_loaded(), is_list(Fn), is_changed(M)].

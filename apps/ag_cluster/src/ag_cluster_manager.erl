@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% @author BlackCat 
+%%% @author ayongbc <ayongbc@sina.com> 
 %%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
 %%% @copyright (C) 2021, AmazeGame
 %%% @doc
@@ -193,8 +193,6 @@ start_link() ->
     {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
     {stop, Reason :: term()} | ignore).
 init([]) ->
-    ag_cluster_config:init(),
-    %self() ! ?INIT,
     {ok, #state{}}.
 
 %%--------------------------------------------------------------------
@@ -285,7 +283,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 adapter() ->
-    case ag_cluster_config:get(adapter) of
+    case ag_cluster_config:geto(adapter) of
         undefined ->
             throw(bad_ag_cluster_config);
         {_, Adapter} ->
