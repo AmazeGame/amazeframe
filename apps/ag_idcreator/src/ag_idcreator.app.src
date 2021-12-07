@@ -1,0 +1,21 @@
+%%%-------------------------------------------------------------------
+%%% @author adrianx 
+%%% @email  adrianx.lau@gmail.com adrianx@163.com
+%%% @copyright (C) 2021, Amaze Game framwork
+%%% @doc
+%%%
+%%% @end
+%%% Created : 2021.11.02
+%%%-------------------------------------------------------------------
+%%%
+{application, ag_idcreator, [
+    {description, "An application to generate userid."},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {mod, {ag_idcreator_app, []}},
+    {env, []}
+]}.

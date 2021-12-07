@@ -1,0 +1,15 @@
+{application, ag_metable,
+ [{description, "An application of metadata tables"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {ag_metable_app, []}},
+  {applications,
+   [kernel,
+    stdlib,ag_initiator
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["MIT License"]},
+  {links, []}
+ ]}.

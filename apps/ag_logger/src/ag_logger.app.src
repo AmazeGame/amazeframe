@@ -1,0 +1,16 @@
+{application, ag_logger,
+ [{description, "Application of logger"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {ag_logger_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+
+  {licenses, ["MIT License"]},
+  {links, []}
+ ]}.
