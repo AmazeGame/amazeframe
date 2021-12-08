@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 2021.11.09
 %%%-------------------------------------------------------------------
--module(agi_appsetting_holder).
+-module(agi_variable_holder).
 
 -behaviour(gen_server).
 -include_lib("ag_base/include/agb_debuglogger.hrl").
@@ -42,7 +42,7 @@ start_link() ->
     {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
     {stop, Reason :: term()} | ignore).
 init([]) ->
-    init_appsettings(),
+    init_variables(),
     {ok, #state{}}.
 
 %% @private
@@ -98,8 +98,8 @@ code_change(_OldVsn, State = #state{}, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-init_appsettings()->
-    Mods = agb_behaviour:get_behaviour_modules(agb_appsetting),
+init_variables()->
+    Mods = agb_behaviour:get_behaviour_modules(agb_variable),
     lists:foreach(fun(Mod)->
                     agb_ets:init(Mod:table()),
                     io:format("TABLE:[~p] for [~p] initialized~n",[Mod:table(),Mod])

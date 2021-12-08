@@ -43,8 +43,8 @@ init([]) ->
                 [?CHILD(agi_codereloader, worker)]
     end,
 
-    %% add appsetting init
-    ChildSpecs = [?CHILD(agi_appsetting_holder,worker)|ChildSpecs0],
+    %% add variable init
+    ChildSpecs = [?CHILD(agi_variable_holder,worker)|ChildSpecs0],
 
     {ok, {SupFlags, ChildSpecs}}.
 

@@ -211,7 +211,7 @@ init_redis_pool() ->
         {ok, Config} ->
             Driver = proplists:get_value(driver, Config),
             Pool = proplists:get_value(pools, Config),
-            ag_cluster_config:put(redis_pool, Pool),
+            ag_cluster_variable:put(redis_pool, Pool),
             Opts = proplists:get_value(option, Config),
             agdb_manager:add_pool(Pool, Driver, Opts)
     end.
@@ -230,7 +230,7 @@ load_lua_job() ->
                     {ok, Binary} = file:read_file(FullFile),
                     Command = ["SCRIPT", "LOAD", agb_string:to_string(Binary)],
                     {ok, Sha} = agdb_cached_adapter:q(?REDIS_POOL, Command),
-                    ag_cluster_config:put(agb_convertor:to_binary(File), Sha);
+                    ag_cluster_variable:put(agb_convertor:to_binary(File), Sha);
                 _Other ->
                     Acc
             end

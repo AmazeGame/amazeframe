@@ -47,7 +47,7 @@ start(_StartType, _StartArgs) ->
             {error, "ag_clusterconfigerror"};
         {'ok', Adapter} ->
             ?LOG_INFO("ag_cluster_manager init  build adapter ~p~n", [Adapter]),
-            ag_cluster_config:put(adapter, Adapter),
+            ag_cluster_variable:put(adapter, Adapter),
             Adapter:init(),
             {ok, Pid}
     end.

@@ -15,7 +15,7 @@
 -export([suite/0, groups/0, all/0, init_per_suite/1, end_per_suite/1, end_per_group/2, init_per_group/2]).
 
 -export([test_cluster/1, test_cluster_online_player/1]).
--export([ag_cluster_config/1]).
+-export([ag_cluster_variable/1]).
 
 
 -define(ONLINE_PLAYER_INDEX, [session, agent_pid, agent_node, archive]).
@@ -112,9 +112,9 @@ end_per_group(_TestCase, _Config) ->
     application:stop(ag_cluster),
     ok.
 
-ag_cluster_config(_Config) ->
-    ?assertEqual(undefined, ag_cluster_config:get(test)),
-    ?assertEqual(undefined, ag_cluster_config:getv(test)),
+ag_cluster_variable(_Config) ->
+    ?assertEqual(undefined, ag_cluster_variable:get(test)),
+    ?assertEqual(undefined, ag_cluster_variable:getv(test)),
     ok.
 
 test_cluster(_Config) ->

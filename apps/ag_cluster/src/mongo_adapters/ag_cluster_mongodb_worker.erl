@@ -199,7 +199,7 @@ init_mongodb_pool() ->
             throw({?MODULE, "notfound config"});
         {ok, Config} ->
             Pool = proplists:get_value(pools, Config),
-            ag_cluster_config:put(mongodb_pool, Pool),
+            ag_cluster_variable:put(mongodb_pool, Pool),
             Opts = proplists:get_value(option, Config),
             agdb_manager:add_pool(Pool, mongodb, Opts)
     end.

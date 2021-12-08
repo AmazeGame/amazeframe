@@ -397,7 +397,7 @@ init_lua_args(TableName, KeyFieldPos) ->
     }.
 
 eval_redis_lua(CMD, Object, Args) when CMD == ?WRITE; CMD == ?VERIFICATION_WRITE ->
-    {_, Sha} = ag_cluster_config:get(<<"cluster_reids.lua">>),
+    {_, Sha} = ag_cluster_variable:get(<<"cluster_reids.lua">>),
     Key = erlang:element(2, Object),
     Json = agb_json:encode(Args),
     Command = ["EVALSHA", agb_convertor:to_string(Sha), 2, CMD, ?ADD_SLOT_KEY(Key), Json | record_to_kvlist(Object)],
@@ -411,7 +411,7 @@ eval_redis_lua(CMD, Object, Args) when CMD == ?WRITE; CMD == ?VERIFICATION_WRITE
             {failed, <<"eval redis lua error">>}
     end;
 eval_redis_lua(?DELETE_BY_KEY, Key, Args) ->
-    {_, Sha} = ag_cluster_config:get(<<"cluster_reids.lua">>),
+    {_, Sha} = ag_cluster_variable:get(<<"cluster_reids.lua">>),
     Json = agb_json:encode(Args),
     Command = ["EVALSHA", agb_convertor:to_string(Sha), 2, ?DELETE_BY_KEY, ?ADD_SLOT_KEY(Key), Json],
     case eval_sha_lua(<<"cluster_reids.lua">>, Command) of
@@ -422,7 +422,7 @@ eval_redis_lua(?DELETE_BY_KEY, Key, Args) ->
             {failed, <<"eval redis lua error">>}
     end;
 eval_redis_lua(?DELETE_BY_INDEX, Key, Args) ->
-    {_, Sha} = ag_cluster_config:get(<<"cluster_reids.lua">>),
+    {_, Sha} = ag_cluster_variable:get(<<"cluster_reids.lua">>),
     Json = agb_json:encode(Args),
     Command = ["EVALSHA", agb_convertor:to_string(Sha), 2, ?DELETE_BY_INDEX, ?ADD_SLOT_KEY(obj_to_binary(Key)), Json],
     case eval_sha_lua(<<"cluster_reids.lua">>, Command) of
@@ -434,7 +434,7 @@ eval_redis_lua(?DELETE_BY_INDEX, Key, Args) ->
     end.
 
 eval_redis_lua(?UPDATE, Update, Key, Args) ->
-    {_, Sha} = ag_cluster_config:get(<<"cluster_reids.lua">>),
+    {_, Sha} = ag_cluster_variable:get(<<"cluster_reids.lua">>),
     Json = agb_json:encode(Args),
     Command = ["EVALSHA", agb_convertor:to_string(Sha), 2, ?UPDATE, ?ADD_SLOT_KEY(Key), Json | Update],
     case eval_sha_lua(<<"cluster_reids.lua">>, Command) of
@@ -447,7 +447,7 @@ eval_redis_lua(?UPDATE, Update, Key, Args) ->
             {failed, <<"eval redis lua error">>}
     end;
 eval_redis_lua(?READ, TableName, Key, Args) ->
-    {_, Sha} = ag_cluster_config:get(<<"cluster_reids.lua">>),
+    {_, Sha} = ag_cluster_variable:get(<<"cluster_reids.lua">>),
     Json = agb_json:encode(Args),
     case eval_sha_lua(<<"cluster_reids.lua">>, ["EVALSHA", agb_convertor:to_string(Sha), 2, ?READ, ?ADD_SLOT_KEY(Key), Json]) of
         {ok, []} ->
@@ -459,7 +459,7 @@ eval_redis_lua(?READ, TableName, Key, Args) ->
             {failed, <<"eval redis lua error">>}
     end;
 eval_redis_lua(?INDEX_READ, TableName, Key, Args) ->
-    {_, Sha} = ag_cluster_config:get(<<"cluster_reids.lua">>),
+    {_, Sha} = ag_cluster_variable:get(<<"cluster_reids.lua">>),
     Json = agb_json:encode(Args),
     Command = ["EVALSHA", agb_convertor:to_string(Sha), 2, ?INDEX_READ, ?ADD_SLOT_KEY(obj_to_binary(Key)), Json],
     case eval_sha_lua(<<"cluster_reids.lua">>, Command) of
@@ -480,7 +480,7 @@ eval_sha_lua(Lua, Command) ->
     case agdb_cached_adapter:q(?REDIS_POOL, Command) of
         {error, <<"NOSCRIPT", _/binary>>} ->
             ag_cluster_redis_worker:reload_lua_file(),
-            {_, Sha} = ag_cluster_config:get(Lua),
+            {_, Sha} = ag_cluster_variable:get(Lua),
             [_, _ | T] = Command,
             NewCommand = ["EVALSHA", Sha] ++ T,
             agdb_cached_adapter:q(?REDIS_POOL, NewCommand);

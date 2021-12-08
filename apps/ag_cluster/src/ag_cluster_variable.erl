@@ -6,10 +6,10 @@
 %%% @end
 %%% Created : 2021.11.08
 %%%-------------------------------------------------------------------
--module(ag_cluster_config).
--behaviour(agb_appsetting).
+-module(ag_cluster_variable).
+-behaviour(agb_variable).
 -export([table/0]).
--include_lib("ag_base/include/agb_appsetting.hrl").
+-include_lib("ag_base/include/agb_variable.hrl").
 %% API
 
 -spec table() -> atom().

@@ -11,8 +11,8 @@
 -ifndef(_GEN_MEMORY_DB_HRL_).
 -define(_GEN_MEMORY_DB_HRL_, 1).
 
--define(REDIS_POOL, ag_cluster_config:getv(redis_pool)).
--define(MONGODB_POOL, ag_cluster_config:getv(mongodb_pool)).
+-define(REDIS_POOL, ag_cluster_variable:getv(redis_pool)).
+-define(MONGODB_POOL, ag_cluster_variable:getv(mongodb_pool)).
 
 -record(table_config, {
     table          :: atom(),

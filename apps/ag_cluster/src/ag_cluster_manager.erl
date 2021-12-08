@@ -283,9 +283,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 adapter() ->
-    case ag_cluster_config:geto(adapter) of
+    case ag_cluster_variable:geto(adapter) of
         undefined ->
-            throw(bad_ag_cluster_config);
+            throw(bad_ag_cluster_variable);
         {_, Adapter} ->
             Adapter
     end.

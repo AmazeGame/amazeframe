@@ -8,11 +8,11 @@
 %%% Created : 2021.10.28
 %%%-------------------------------------------------------------------
 %%%
--module(ag_logger_config).
--behaviour(agb_appsetting).
+-module(ag_logger_variable).
+-behaviour(agb_variable).
 %% API
 -export([table/0]).
--include_lib("ag_base/include/agb_appsetting.hrl").
+-include_lib("ag_base/include/agb_variable.hrl").
 
 -spec table() -> atom().
 table() ->

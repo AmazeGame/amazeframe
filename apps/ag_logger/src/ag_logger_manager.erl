@@ -45,9 +45,9 @@ write_log(LogType,Log)  when LogType == ?LOG_TYPE_OP ->
     logger:info(Log,#{logtype=>LogType});
 write_log(LogType,Log)  when LogType == ?LOG_TYPE_BI ->
     NewLog = maps:merge( Log,#{
-                                appid => ag_logger_config:get(appid),
-                                hostname => ag_logger_config:get(hostname),
-                                date => agb_convertor:to_binary( agb_time:format_datetime( ag_logger_config:get(dateformat) , calendar:universal_time()))} ),
+                                appid => ag_logger_variable:get(appid),
+                                hostname => ag_logger_variable:get(hostname),
+                                date => agb_convertor:to_binary( agb_time:format_datetime( ag_logger_variable:get(dateformat) , calendar:universal_time()))} ),
     logger:info(NewLog,#{logtype=>LogType}).
 
 %%--------------------------------------------------------------------
@@ -80,7 +80,7 @@ start_link() ->
     {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
     {stop, Reason :: term()} | ignore).
 init([]) ->
-    ag_logger_config:init(),
+    ag_logger_variable:init(),
     logger:set_primary_config(level,all),
     case init_config() of
         ok ->
@@ -189,7 +189,7 @@ init_config()->
         {ok,Config}->
             lists:foreach(
                 fun({K,V}) ->
-                    ag_logger_config:put(K,V)
+                    ag_logger_variable:put(K,V)
                 end,maps:to_list(Config)),
             ok
     end.

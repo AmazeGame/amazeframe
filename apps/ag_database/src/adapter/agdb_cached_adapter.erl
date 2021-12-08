@@ -113,7 +113,7 @@ init(Driver, DriverPoolName, Opts) ->
             case lists:member(Adapter, agb_behaviour:get_behaviour_modules(?MODULE)) of
                 true ->
                     ok = Adapter:connect(DriverPoolName, Opts),
-                    agdb_config:put({?MODULE, DriverPoolName}, {Adapter, DriverPoolName}),
+                    ag_database_variable:put({?MODULE, DriverPoolName}, {Adapter, DriverPoolName}),
                     {ok, Adapter};
                 false ->
                     {error, agb_string:sprintf("the db driver:~p is error!~n", [Driver])}
@@ -125,7 +125,7 @@ init(Driver, DriverPoolName, Opts) ->
 -spec adapter(atom()) ->
     undefined | {module(), atom()}.
 adapter(DriverPoolName) ->
-    case agdb_config:get({?MODULE, DriverPoolName}) of
+    case ag_database_variable:get({?MODULE, DriverPoolName}) of
         undefined ->
             undefined;
         {_, AdapterInfo} ->

@@ -55,14 +55,14 @@
 init(DriverDBCachedPoolName, {DBPoolName, DBDriver, DBDriverOpts}, {CachedPoolName, CachedDriver, CachedDriverOpts}) ->
     {ok, DBAdapter} = agdb_database_adapter:init(DBDriver, DBPoolName, DBDriverOpts),
     {ok, CachedAdapter} = agdb_cached_adapter:init(CachedDriver, CachedPoolName, CachedDriverOpts),
-    agdb_config:put({?MODULE, DriverDBCachedPoolName, db}, {DBAdapter, DBPoolName}),
-    agdb_config:put({?MODULE, DriverDBCachedPoolName, cached}, {CachedAdapter, CachedPoolName}),
+    ag_database_variable:put({?MODULE, DriverDBCachedPoolName, db}, {DBAdapter, DBPoolName}),
+    ag_database_variable:put({?MODULE, DriverDBCachedPoolName, cached}, {CachedAdapter, CachedPoolName}),
     ok.
 
 -spec db_adapter(atom()) ->
     {module(), atom()}.
 db_adapter(DriverDBCachedPoolName) ->
-    case agdb_config:get({?MODULE, DriverDBCachedPoolName, db}) of
+    case ag_database_variable:get({?MODULE, DriverDBCachedPoolName, db}) of
         undefined ->
             undefined;
         {_, AdapterInfo} ->
@@ -72,7 +72,7 @@ db_adapter(DriverDBCachedPoolName) ->
 -spec cached_adapter(atom()) ->
     {module(), atom()}.
 cached_adapter(DriverDBCachedPoolName) ->
-    case agdb_config:get({?MODULE, DriverDBCachedPoolName, cached}) of
+    case ag_database_variable:get({?MODULE, DriverDBCachedPoolName, cached}) of
         undefined ->
             unedefined;
         {_, AdapterInfo} ->
