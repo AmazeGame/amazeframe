@@ -16,4 +16,4 @@
 
 -spec table() -> atom().
 table() ->
-    'AMAZEGAME_LOGGER_CONFIG'.
+    'AMAZEGAME_LOGGER_VARIABLE'.

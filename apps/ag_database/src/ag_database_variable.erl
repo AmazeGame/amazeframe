@@ -16,5 +16,5 @@
 
 -spec table() -> atom().
 table() ->
-    'AMAZEGAME_DB_CONFIG'.
+    'AMAZEGAME_DB_VARIABLE'.
 

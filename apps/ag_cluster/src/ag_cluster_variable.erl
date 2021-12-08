@@ -14,4 +14,4 @@
 
 -spec table() -> atom().
 table() ->
-    'AMAZEGAME_CLUSTER_CONFIG'.
+    'AMAZEGAME_CLUSTER_VARIABLE'.
