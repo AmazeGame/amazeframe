@@ -125,7 +125,7 @@ init(Driver, DriverPoolName, Opts) ->
 -spec adapter(atom()) ->
     undefined | {module(), atom()}.
 adapter(DriverPoolName) ->
-    case ag_database_variable:get({?MODULE, DriverPoolName}) of
+    case ag_database_variable:geto({?MODULE, DriverPoolName}) of
         undefined ->
             undefined;
         {_, AdapterInfo} ->

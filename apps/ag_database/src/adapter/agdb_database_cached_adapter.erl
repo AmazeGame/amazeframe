@@ -62,7 +62,7 @@ init(DriverDBCachedPoolName, {DBPoolName, DBDriver, DBDriverOpts}, {CachedPoolNa
 -spec db_adapter(atom()) ->
     {module(), atom()}.
 db_adapter(DriverDBCachedPoolName) ->
-    case ag_database_variable:get({?MODULE, DriverDBCachedPoolName, db}) of
+    case ag_database_variable:geto({?MODULE, DriverDBCachedPoolName, db}) of
         undefined ->
             undefined;
         {_, AdapterInfo} ->
@@ -72,7 +72,7 @@ db_adapter(DriverDBCachedPoolName) ->
 -spec cached_adapter(atom()) ->
     {module(), atom()}.
 cached_adapter(DriverDBCachedPoolName) ->
-    case ag_database_variable:get({?MODULE, DriverDBCachedPoolName, cached}) of
+    case ag_database_variable:geto({?MODULE, DriverDBCachedPoolName, cached}) of
         undefined ->
             unedefined;
         {_, AdapterInfo} ->
