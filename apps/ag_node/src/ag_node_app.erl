@@ -29,6 +29,8 @@
 -spec(start(StartType :: term(), StartArgs :: term()) ->
     {ok, Pid :: pid()} | {error, Error :: term()}).
 start(_StartType, _StartArgs) ->
+    {ok,DataDir} = application:get_env(ag_node,'ra_data_dir'),  %%获取设置ra数据参数
+    ra:start([{data_dir,DataDir}]),                             %%ra的启动必须使用这种方式
     ag_node_cluster:init(),
     case ag_node_sup:start_link() of
         {ok, Pid} ->

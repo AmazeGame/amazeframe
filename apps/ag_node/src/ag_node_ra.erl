@@ -75,7 +75,6 @@ trigger_election_self() ->
 start_node() ->
     ClusterName = get_cluster_name(),
     ServerID = get_local_server_id(),
-    io:format("ra:start_server [~p ~p ~p ]",[ClusterName, ServerID, add_machine()]),
     ra:start_server(default,ClusterName, ServerID, add_machine(), []).
 
 -spec on_enter_leader() -> no_return().

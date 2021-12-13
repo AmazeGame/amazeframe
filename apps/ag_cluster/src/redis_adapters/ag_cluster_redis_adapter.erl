@@ -385,11 +385,8 @@ update_counter_redis(TableName, Key, Incr) ->
     Num.
 
 init_lua_args(TableName, KeyFieldPos) ->
-    io:format("init_lua_args ~p ~p~n",[TableName, KeyFieldPos]),
     TableInfo = ag_cluster_redis_worker:get_table(TableName),
-    io:format("====>ag_cluster_redis_worker:get_table ~p -> ~p~n",[TableName, TableInfo]),
     KeyField = get_keyfield_bypos(TableName, KeyFieldPos),
-    io:format("====>ag_cluster_redis_worker:get_table ~p -> ~p~n",[TableName, TableInfo]),
     #{
         <<"objectName">> => agb_convertor:to_binary(TableName),
         <<"keyField">> => agb_convertor:to_binary(KeyField),

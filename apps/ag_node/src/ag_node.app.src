@@ -15,8 +15,7 @@
     {applications, [
         kernel,
         stdlib,
-        ag_idcreator,
-        ra
+        ag_idcreator
     ]},
     {mod, {ag_node_app, []}},
     {env, []}
