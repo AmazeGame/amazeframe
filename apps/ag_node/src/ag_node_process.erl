@@ -97,9 +97,8 @@ start_link() ->
     {stop, Reason :: term()} | ignore).
 init([]) ->
     process_flag(trap_exit, true),
-    agb_ets:init(?NODE_INFO_TABLE),
     ServerId = ag_node_ra:build_server_id(),
-    agb_ets:put(?NODE_INFO_TABLE, server_id, ServerId),
+    ag_node_variable:put(server_id,ServerId),
     self() ! ?CHECK_NODE_INFO,
     {ok, #state{}}.
 
@@ -321,7 +320,7 @@ start_ra_master(State = #state{start_ra_server = false}) ->
                     cluster = ag_node_ra:get_cluster_name(),
                     master_server = LocalServerId,
                     members = [LocalServerId]}),
-            erlang:send_after(3000, self(), 'CHECK_NODE_INFO'),
+            erlang:send_after(3000, self(), ?CHECK_NODE_INFO),
             {noreply, State#state{start_ra_server = true}};
         {error, Reason} ->
             agb_error:error("start_ra_cluster error reason:~p~n", [Reason]),

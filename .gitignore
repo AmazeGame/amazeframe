@@ -35,3 +35,4 @@ rebar.lock
 .tags*
 .vscode
 *.crashdump
+.templates

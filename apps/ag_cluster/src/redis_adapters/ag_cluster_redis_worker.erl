@@ -35,7 +35,7 @@
 
 -define(SERVER, ?MODULE).
 
--define(TABLE_ETS, 'CLUSTER_TABLE_ETS').
+
 -define(RELOAD_LUA_FILE, reload_lua_file).
 
 -record(state, {table_config = [] :: [tuple()]}).
@@ -43,17 +43,19 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
--spec add_table(Table :: atom(), Attributes :: list(), Indices :: list(), TTL :: non_neg_integer()) ->
+-spec add_table(Table :: atom(), Attributes :: list(), Indices :: list(),
+    TTL :: non_neg_integer()
+) ->
     ok.
 add_table(Table, Attributes, Indices, TTL) ->
-    agb_ets:put(?TABLE_ETS, #table_config{table = Table, attribute = Attributes, index = Indices, ttl = TTL}),
+    ag_cluster_variable:put({table,Table},#table_config{table = Table, attribute = Attributes, index = Indices, ttl = TTL}),
     ok.
 
 -spec get_table(Table :: atom()) ->
     tuple().
 get_table(TableName) ->
-    case agb_ets:lookup(?TABLE_ETS, TableName) of
-        [] ->
+    case ag_cluster_variable:getv({table,TableName}) of
+        undefined ->
             notfound;
         Object ->
             Object
@@ -64,13 +66,14 @@ get_table(TableName) ->
 check_table(TableNames) ->
     lists:all(
         fun(TableName) ->
-            case agb_ets:lookup(?TABLE_ETS, TableName) of
-                [] ->
+            case ag_cluster_variable:getv(TableName) of
+                undefined ->
                     false;
                 _ ->
                     true
             end
-        end, TableNames
+        end,
+        TableNames
     ).
 
 %%--------------------------------------------------------------------
@@ -108,7 +111,6 @@ reload_lua_file() ->
     {stop, Reason :: term()} | ignore).
 init([]) ->
     ?LOG_INFO("ag_cluster_redis_worker init"),
-    agb_ets:init(?TABLE_ETS, [{keypos, #table_config.table}]),
     init_redis_pool(),
     load_lua_job(),
     {ok, #state{table_config = []}}.
@@ -229,7 +231,7 @@ load_lua_job() ->
                     ?LOG_DEBUG("load_lua_job FullFile~p~n", [FullFile]),
                     {ok, Binary} = file:read_file(FullFile),
                     Command = ["SCRIPT", "LOAD", agb_string:to_string(Binary)],
-                    {ok, Sha} = agdb_cached_adapter:q(?REDIS_POOL, Command),
+                    {ok, Sha} = agdb_cached_adapter:q(?REDIS_POOL , Command),
                     ag_cluster_variable:put(agb_convertor:to_binary(File), Sha);
                 _Other ->
                     Acc

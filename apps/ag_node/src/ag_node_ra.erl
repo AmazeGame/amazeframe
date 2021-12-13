@@ -56,7 +56,7 @@ check_master_ra_server_start() ->
 
 -spec get_local_server_id() -> {atom(), atom()}.
 get_local_server_id() ->
-    agb_ets:get(?NODE_INFO_TABLE, server_id).
+    ag_node_variable:getv(server_id).
 
 -spec watch_pid(pid()) ->
     {ok, Reply :: term(), Leader :: {atom(), atom()}} |
@@ -75,7 +75,8 @@ trigger_election_self() ->
 start_node() ->
     ClusterName = get_cluster_name(),
     ServerID = get_local_server_id(),
-    ra:start_server(ClusterName, ServerID, add_machine(), []).
+    io:format("ra:start_server [~p ~p ~p ]",[ClusterName, ServerID, add_machine()]),
+    ra:start_server(default,ClusterName, ServerID, add_machine(), []).
 
 -spec on_enter_leader() -> no_return().
 on_enter_leader() ->
@@ -152,8 +153,9 @@ get_node_name() ->
                 Node
         end,
     PrefixB = agb_convertor:to_binary(Prefix),
-    Rand = agb_convertor:to_binary(ag_idcreator:gen_newid(snowflake)),
-    binary_to_atom(<<PrefixB/binary, Rand/binary>>, utf8).
+    SnowflakeId = ag_idcreator:gen_newid(snowflake),
+    IdBin = agb_convertor:to_binary(SnowflakeId),
+    binary_to_atom(<<PrefixB/binary, IdBin/binary>>, utf8).
 
 add_machine() ->
     {module, ag_machine_node, #{}}.

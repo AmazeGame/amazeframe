@@ -44,7 +44,7 @@ start(_StartType, _StartArgs) ->
     case application:get_env(adapter) of
         undefined ->
             ?LOG_INFO("ag_cluster_manager init  gen_env adapter undefined"),
-            {error, "ag_clusterconfigerror"};
+            {error, "ag_cluster config error"};
         {'ok', Adapter} ->
             ?LOG_INFO("ag_cluster_manager init  build adapter ~p~n", [Adapter]),
             ag_cluster_variable:put(adapter, Adapter),

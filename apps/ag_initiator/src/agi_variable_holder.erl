@@ -101,6 +101,8 @@ code_change(_OldVsn, State = #state{}, _Extra) ->
 init_variables()->
     Mods = agb_behaviour:get_behaviour_modules(agb_variable),
     lists:foreach(fun(Mod)->
-                    agb_ets:init(Mod:table()),
-                    io:format("TABLE:[~p] for [~p] initialized~n",[Mod:table(),Mod])
+                    case Mod:table() of
+                        {Tab,Opt}-> agb_ets:init(Tab,Opt);
+                        Tab -> agb_ets:init(Tab)
+                    end
                 end,Mods).

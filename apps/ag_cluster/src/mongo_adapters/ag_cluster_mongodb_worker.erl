@@ -31,8 +31,6 @@
 
 -define(SERVER, ?MODULE).
 
--define(TABLE_ETS, 'CLUSTER_TABLE_ETS').
-
 -record(state, {table_config = [] :: [tuple()]}).
 
 %%%===================================================================
@@ -43,14 +41,14 @@
 ) ->
     ok.
 add_table(Table, Attributes, Indices, TTL) ->
-    agb_ets:put(?TABLE_ETS, #table_config{table = Table, attribute = Attributes, index = Indices, ttl = TTL}),
+    ag_cluster_variable:put({table,Table},#table_config{table = Table, attribute = Attributes, index = Indices, ttl = TTL}),
     ok.
 
 -spec get_table(Table :: atom()) ->
     tuple().
 get_table(TableName) ->
-    case agb_ets:lookup(?TABLE_ETS, TableName) of
-        [] ->
+    case ag_cluster_variable:getv({table,TableName}) of
+        undefined ->
             notfound;
         Object ->
             Object
@@ -61,8 +59,8 @@ get_table(TableName) ->
 check_table(TableNames) ->
     lists:all(
         fun(TableName) ->
-            case agb_ets:lookup(?TABLE_ETS, TableName) of
-                [] ->
+            case ag_cluster_variable:getv(TableName) of
+                undefined ->
                     false;
                 _ ->
                     true
@@ -102,7 +100,6 @@ start_link() ->
     {stop, Reason :: term()} | ignore).
 init([]) ->
     ?LOG_DEBUG("ag_cluster_redis_worker init"),
-    agb_ets:init(?TABLE_ETS, [{keypos, #table_config.table}]),
     init_mongodb_pool(),
     {ok, #state{table_config = []}}.
 
@@ -195,7 +192,7 @@ code_change(_OldVsn, State, _Extra) ->
 init_mongodb_pool() ->
     case application:get_env(ag_cluster_mongodb_adapter) of
         undefined ->
-            ?LOG_ERROR("ag_cluster_redis_worker init_redis_pool error notfound config"),
+            ?LOG_ERROR("ag_cluster_mongodb_worker init_mongodb_pool error notfound config"),
             throw({?MODULE, "notfound config"});
         {ok, Config} ->
             Pool = proplists:get_value(pools, Config),

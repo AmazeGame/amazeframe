@@ -61,7 +61,7 @@ init([]) ->
     Childs =
         lists:flatten(
             [
-                get_id_rendchar(),
+                get_id_randchar(),
                 get_id_accumulator(),
                 get_snowflake(),
                 get_id_ets()
@@ -72,11 +72,13 @@ init([]) ->
 %%% Internal functions
 %%%===================================================================
 
-get_id_rendchar() ->
+get_id_randchar() ->
     case application:get_env(id_randchar) of
         undefined ->
             [?CHILDA(ag_idcreator_randchar, worker, [0, 1])];
-        {ok, [{gameid, GameId}, {bucket, BucketId}]} ->
+        {ok, RandConfig} ->
+            GameId = proplists:get_value(gameid, RandConfig),
+            BucketId = proplists:get_value(bucket, RandConfig),
             [?CHILDA(ag_idcreator_randchar, worker, [GameId, BucketId])]
     end.
 
@@ -84,12 +86,12 @@ get_id_accumulator() ->
     case application:get_env(id_accumulator) of
         undefined ->
             [];
-        {ok, Param} ->
-            Driver = proplists:get_value(driver, Param),
-            Pool = proplists:get_value(pools, Param),
-            Opts = proplists:get_value(option, Param),
+        {ok, AccConfig} ->
+            Driver = proplists:get_value(driver, AccConfig),
+            Pool = proplists:get_value(pools, AccConfig),
+            Opts = proplists:get_value(option, AccConfig),
             agdb_manager:add_pool(Pool, Driver, Opts),
-            Bizs = proplists:get_value(biz, Param),
+            Bizs = proplists:get_value(biz, AccConfig),
             case proplists:get_value(default, Bizs) of
                 undefined ->
                     [?CHILDA(ag_idcreator_accumulator, worker, [Pool, [{default, 0} | Bizs]])];
@@ -102,16 +104,21 @@ get_snowflake() ->
     case application:get_env(id_snowflake) of
         undefined ->
             [];
-        {ok, [{dc_id, random}, {worker_id, random}]} ->
-            DcId = rand:uniform(31),
-            WorkerId = rand:uniform(31),
-            [?CHILDA(ag_idcreator_snowflake, worker, [DcId, WorkerId])];
-        {ok, [{dc_id, DcId}, {worker_id, WorkerId}]} ->
+        {ok, SnowflakeConfig } ->
+             DcId = case proplists:get_value(dc_id, SnowflakeConfig) of
+                        random-> rand:uniform(31);
+                        DcId0 -> DcId0
+                    end,
+
+             WorkerId = case proplists:get_value(worker_id, SnowflakeConfig) of
+                        random-> rand:uniform(31);
+                        WId0 -> WId0
+                    end,
             if
-                DcId > 31; WorkerId > 31 ->
+                DcId > 31; WorkerId > 31 -> %%超出范围
                     [];
-                true ->
-                    [?CHILDA(ag_idcreator_snowflake, worker, [DcId, WorkerId])]
+                true->
+                [?CHILDA(ag_idcreator_snowflake, worker, [DcId, WorkerId])]
             end
     end.
 
@@ -119,6 +126,9 @@ get_id_ets() ->
     case application:get_env(id_ets) of
         undefined ->
             [?CHILDA(ag_idcreator_id_ets, worker, [1, 10000000, 1])];
-        {ok, [{incr, Incr}, {threshold, Threshold}, {setvalue, SetValue}]} ->
+        {ok, IdEtsConfig} ->
+            Incr = proplists:get_value(incr, IdEtsConfig),
+            Threshold = proplists:get_value(threshold, IdEtsConfig),
+            SetValue = proplists:get_value(setvalue, IdEtsConfig),
             [?CHILDA(ag_idcreator_id_ets, worker, [Incr, Threshold, SetValue])]
     end.
