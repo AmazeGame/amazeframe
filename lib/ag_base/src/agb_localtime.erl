@@ -1,0 +1,310 @@
+%%%-------------------------------------------------------------------
+%%% @author adrianx 
+%%% @email  adrianx.lau@gmail.com adrianx@163.com
+%%% @copyright (C) 2021, Amaze Game framwork
+%%% @doc
+%%%
+%%% @end
+%%% Created : 2021.10.12 
+%%%-------------------------------------------------------------------
+
+-module(agb_localtime).
+
+-include("agb_timezone_db.hrl").
+-include("agb_timezone_index.hrl").
+%% API
+
+-export([
+    utc_to_local/2,
+    local_to_utc/2,
+    local_to_local/3,
+    local_to_local_dst/3,
+    tz_name/2,
+    tz_shift/2, tz_shift/3,
+    get_timezone/1,
+    list_timezones/0,
+    adjust_datetime/2
+]).
+
+-export_type([shift/0]).
+
+-type signal() :: '+' | '-'.
+-type hour() :: 0..23.
+-type minute() :: 0..59.
+-type shift() :: {signal(), hour(), minute()}.
+% -type local_datetime()     :: calendar:datetime().
+% -type dst_local_datetime() :: calendar:datetime().
+-type ldt() :: [calendar:datetime(), ...]. % [local_datetime(), dst_local_datetime()].
+
+-spec utc_to_local(UtcDateTime, Timezone) ->
+    LocalDateTime | LocalAndDstDateTime |[calendar:datetime()] |{error, unknown_tz} when
+    UtcDateTime :: calendar:datetime(),
+    Timezone :: string(),
+    LocalDateTime :: calendar:datetime(),
+    LocalAndDstDateTime :: ldt().
+utc_to_local(UtcDateTime, Timezone) ->
+    case lists:keyfind(get_timezone(Timezone), 1, ?AGB_TIMEZONE_DB) of
+        false ->
+            {error, unknown_tz};
+        {_Tz, _, _, Shift, _DstShift, undef, _DstStartTime, undef, _DstEndTime} ->
+            adjust_datetime(UtcDateTime, Shift);
+        TzRule = {_, _, _, Shift, DstShift, _, _, _, _} ->
+            LocalDateTime = adjust_datetime(UtcDateTime, Shift),
+            case agb_localtime_dst:check(LocalDateTime, TzRule) of
+                Res when (Res == is_in_dst) or (Res == time_not_exists) ->
+                    adjust_datetime(LocalDateTime, DstShift);
+                is_not_in_dst ->
+                    LocalDateTime;
+                ambiguous_time ->
+                    [LocalDateTime, adjust_datetime(LocalDateTime, DstShift)];
+                _ ->
+                    {error, unknown_tz}
+            end
+    end.
+
+-spec local_to_utc(LocalDateTime, Timezone) ->
+    UtcDateTime | LocalAndDstUtcDateTime | time_not_exists | {error, unknown_tz} when
+    LocalDateTime :: calendar:datetime(),
+    Timezone :: string(),
+    UtcDateTime :: calendar:datetime(),
+    LocalAndDstUtcDateTime :: ldt().
+local_to_utc(LocalDateTime, Timezone) ->
+    case lists:keyfind(get_timezone(Timezone), 1, ?AGB_TIMEZONE_DB) of
+        false ->
+            {error, unknown_tz};
+        {_Tz, _, _, Shift, _DstShift, undef, _DstStartTime, undef, _DstEndTime} ->
+            adjust_datetime(LocalDateTime, invert_shift(Shift));
+        TzRule = {_, _, _, Shift, DstShift, _, _, _, _} ->
+            UtcDateTime = adjust_datetime(LocalDateTime, invert_shift(Shift)),
+            case agb_localtime_dst:check(LocalDateTime, TzRule) of
+                is_in_dst ->
+                    adjust_datetime(UtcDateTime, invert_shift(DstShift));
+                is_not_in_dst ->
+                    UtcDateTime;
+                ambiguous_time ->
+                    [UtcDateTime, adjust_datetime(UtcDateTime, invert_shift(DstShift))];
+                time_not_exists ->
+                    time_not_exists
+            end
+    end.
+
+% local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+% LocalDateTime | ambiguous | time_not_exists | {error, ErrDescr}
+%  LocalDateTime = DateTime()
+%  TimezoneFrom = String()
+%  TimezoneTo = String()
+%  ErrDescr = atom(), unknown_tz
+-spec local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+    LocalDateTime | ambiguous | time_not_exists | {error, unknown_tz} when
+    LocalDateTime :: calendar:datetime(),
+    TimezoneFrom :: string(),
+    TimezoneTo :: string(),
+    LocalDateTime :: calendar:datetime().
+local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+    LocalDateTime2 =
+        case local_to_utc(LocalDateTime, TimezoneFrom) of
+            UtcDateTime = {{_, _, _}, {_, _, _}} ->
+                utc_to_local(UtcDateTime, TimezoneTo);
+            [UtcDateTime, {{_, _, _}, {_, _, _}}] ->
+                utc_to_local(UtcDateTime, TimezoneTo);
+            Res ->
+                Res
+        end,
+    case LocalDateTime2 of
+        [DateTimeToReturn, {{_, _, _}, {_, _, _}}] ->
+            DateTimeToReturn;
+        Other ->
+            Other
+    end.
+
+% local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+% LocalDateTime | ambiguous | time_not_exists | {error, ErrDescr}
+%  LocalDateTime = DateTime()
+%  TimezoneFrom = String()
+%  TimezoneTo = String()
+%  ErrDescr = atom(), unknown_tz
+-spec local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+    LocalDateTime | ambiguous | time_not_exists | {error, unknown_tz} when
+    LocalDateTime :: calendar:datetime(),
+    TimezoneFrom :: string(),
+    TimezoneTo :: string(),
+    LocalDateTime :: calendar:datetime().
+local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+    LocalDateTime2 =
+        case local_to_utc(LocalDateTime, TimezoneFrom) of
+            UtcDateTime = {{_, _, _}, {_, _, _}} ->
+                utc_to_local(UtcDateTime, TimezoneTo);
+            [{{_, _, _}, {_, _, _}}, UtcDateTime] ->
+                utc_to_local(UtcDateTime, TimezoneTo);
+            Res ->
+                Res
+        end,
+    case LocalDateTime2 of
+        [{{_, _, _}, {_, _, _}}, DateTimeToReturn] ->
+            DateTimeToReturn;
+        Other ->
+            Other
+    end.
+
+% tz_name(DateTime(), Timezone) ->
+% {Abbr, Name} | {{StdAbbr, StdName}, {DstAbbr, DstName}} | unable_to_detect | {error, ErrDesc}
+%  Timezone = String()
+%  Abbr = String()
+%  Name = String()
+%  StdAbbr = String()
+%  StdName = String()
+%  DstAbbr = String()
+%  DstName = String()
+%  ErrDesc = atom(), unknown_tz
+-spec tz_name(LocalDateTime, Timezone) ->
+    {Abbr, Name} | {{StdAbbr, StdName}, {DstAbbr, DstName}} | unable_to_detect | {error, unknown_tz} when
+    LocalDateTime :: calendar:datetime(),
+    Timezone :: string(),
+    Abbr :: string(),
+    Name :: string(),
+    StdAbbr :: string(),
+    StdName :: string(),
+    DstAbbr :: string(),
+    DstName :: string().
+tz_name(LocalDateTime, Timezone) ->
+    case lists:keyfind(get_timezone(Timezone), 1, ?AGB_TIMEZONE_DB) of
+        false ->
+            {error, unknown_tz};
+        {_Tz, StdName, undef, _Shift, _DstShift, undef, _DstStartTime, undef, _DstEndTime} ->
+            StdName;
+        TzRule = {_, StdName, DstName, _Shift, _DstShift, _, _, _, _} ->
+            case agb_localtime_dst:check(LocalDateTime, TzRule) of
+                is_in_dst ->
+                    DstName;
+                is_not_in_dst ->
+                    StdName;
+                ambiguous_time ->
+                    {StdName, DstName};
+                time_not_exists ->
+                    unable_to_detect
+            end
+    end.
+
+% tz_shift(LocalDateTime, Timezone) ->  Shift | {Shift, DstShift} | unable_to_detect | {error, ErrDesc}
+%  returns time shift from GMT
+%  LocalDateTime = DateTime()
+%  Timezone = String()
+%  Shift = DstShift = {Sign, Hours, Minutes}
+%  Sign = term(), '+', '-'
+%  Hours = Minutes = Integer(),
+%  {Shift, DstShift} - returns, when shift is ambiguous
+%  ErrDesc = atom(), unknown_tz
+-spec tz_shift(LocalDateTime, Timezone) ->
+    Shift | {Shift, DstShift} | unable_to_detect | {error, unknown_tz} when
+    LocalDateTime :: calendar:datetime(),
+    Timezone :: string(),
+    Shift :: shift(),
+    DstShift :: shift().
+tz_shift(LocalDateTime, Timezone) ->
+    case lists:keyfind(get_timezone(Timezone), 1, ?AGB_TIMEZONE_DB) of
+        false ->
+            {error, unknown_tz};
+        {_Tz, _StdName, undef, Shift, _DstShift, undef, _DstStartTime, undef, _DstEndTime} ->
+            fmt_min(Shift);
+        TzRule = {_, _StdName, _DstName, Shift, DstShift, _, _, _, _} ->
+            case agb_localtime_dst:check(LocalDateTime, TzRule) of
+                is_in_dst ->
+                    fmt_min(Shift + DstShift);
+                is_not_in_dst ->
+                    fmt_min(Shift);
+                ambiguous_time ->
+                    {fmt_min(Shift), fmt_min(Shift + DstShift)};
+                time_not_exists ->
+                    unable_to_detect
+            end
+    end.
+
+% the same as tz_shift/2, but calculates time difference between two local timezones
+-spec tz_shift(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+    Shift | Error when
+    LocalDateTime :: calendar:datetime(),
+    TimezoneFrom :: string(),
+    TimezoneTo :: string(),
+    Shift :: shift(),
+    Error :: term().
+tz_shift(LocalDateTime, TimezoneFrom, TimezoneTo) ->
+    F =
+        fun() ->
+            FromShift = fmt_shift(tz_shift(LocalDateTime, TimezoneFrom)),
+            DateTimeTo = agb_localtime:local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo),
+            ToShift = fmt_shift(tz_shift(DateTimeTo, TimezoneTo)),
+            fmt_min(ToShift - FromShift)
+        end,
+    try
+        F()
+    catch
+        _:Err ->
+            Err
+    end.
+
+-spec adjust_datetime(DateTime, Minutes) ->
+    NewDateTime when
+    DateTime :: calendar:datetime(),
+    Minutes :: integer(),
+    NewDateTime :: calendar:datetime().
+adjust_datetime(DateTime, Minutes) ->
+    Seconds = calendar:datetime_to_gregorian_seconds(DateTime) + Minutes * 60,
+    calendar:gregorian_seconds_to_datetime(Seconds).
+
+-spec get_timezone(TimeZone) ->
+    TZName when
+    TimeZone :: string(),
+    TZName :: string().
+get_timezone(TimeZone) ->
+    get_timezone_inner(TimeZone).
+
+-spec list_timezones() ->
+    TimeZoneList :: list().
+list_timezones() ->
+    maps:keys(?AGB_TIMEZONE_INDEX).
+
+% =======================================================================
+% privates
+% =======================================================================
+invert_shift(Minutes) ->
+    -Minutes.
+
+fmt_min(Shift) when Shift < 0 ->
+    {'-', abs(Shift) div 60, abs(Shift) rem 60};
+fmt_min(Shift) ->
+    {'+', Shift div 60, Shift rem 60}.
+
+fmt_shift({'+', H, M}) ->
+    H * 60 + M;
+fmt_shift({'-', H, M}) ->
+    -(H * 60 + M);
+fmt_shift(Any) ->
+    throw(Any).
+
+tr_char(String, From, To) ->
+    case string:chr(String, From) of
+        0 ->
+            String; % Optimize for String does not contain From.
+        _ ->
+            tr_char(String, From, To, [])
+    end.
+
+tr_char([], _From, _To, Acc) ->
+    lists:reverse(Acc);
+tr_char([H | T], From, To, Acc) ->
+    case H of
+        From ->
+            tr_char(T, From, To, [To | Acc]);
+        _ ->
+            tr_char(T, From, To, [H | Acc])
+    end.
+
+-define(SPACE_CHAR, 32).
+get_timezone_inner(TimeZone) ->
+    TimeZoneNoSpaces = tr_char(TimeZone, ?SPACE_CHAR, $_),
+    case maps:find(TimeZoneNoSpaces, ?AGB_TIMEZONE_INDEX) of
+        error ->
+            TimeZoneNoSpaces;
+        {ok, [TZName | _]} ->
+            TZName
+    end.
