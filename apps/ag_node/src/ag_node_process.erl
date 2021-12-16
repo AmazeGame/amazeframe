@@ -172,13 +172,17 @@ handle_info(?CHECK_NODE_INFO, State) ->
         undefined ->
             start_ra_master(State);
         NodeInfo ->
+            ?LOG_INFO("check_node:~p~n",[NodeInfo]),
             case check_node(NodeInfo) of
                 master_ready ->
+                    ?LOG_INFO("master_ready~n"),
                     NewState = start_ra_salve(State),
                     add_to_ra_cluster(NodeInfo, NewState);
                 start_master ->
+                    ?LOG_INFO("start_master~n"),
                     start_ra_master(State);
                 wait_master ->
+                    ?LOG_INFO("wait_master~n"),
                     erlang:send_after(1000, self(), ?CHECK_NODE_INFO),
                     {noreply, State}
             end
@@ -241,6 +245,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 check_node(#ag_node_info{master_server = {_, MasterNode}, members = Members}) ->
+    ?LOG_INFO("check_node:master-> ~p~n",[MasterNode]),
     case net_kernel:connect_node(MasterNode) of
         true ->
             ?LOG_DEBUG("check_node node:~p is connect~n", [MasterNode]),
@@ -314,13 +319,19 @@ start_ra_master(State = #state{start_ra_server = true}) ->
 start_ra_master(State = #state{start_ra_server = false}) ->
     case ag_node_ra:start_node() of
         ok ->
+            ?LOG_INFO("ag_node_ra:start_node()~n"),
             LocalServerId = ag_node_ra:get_local_server_id(),
+            ?LOG_INFO("ag_node_ra:get_local_server_id:~p~n",[LocalServerId]),
             ag_node_cluster:set_node_info(
                 #ag_node_info{
                     cluster = ag_node_ra:get_cluster_name(),
                     master_server = LocalServerId,
                     members = [LocalServerId]}),
+
+            ?LOG_INFO("ag_node_ra:set_node_info~n"),
+
             erlang:send_after(3000, self(), ?CHECK_NODE_INFO),
+            ?LOG_INFO("CHECK_NODE_INFO~n"),
             {noreply, State#state{start_ra_server = true}};
         {error, Reason} ->
             agb_error:error("start_ra_cluster error reason:~p~n", [Reason]),

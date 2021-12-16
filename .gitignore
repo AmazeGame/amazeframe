@@ -35,5 +35,4 @@ rebar.lock
 .tags*
 .vscode
 *.crashdump
-.templates
 .node_data_dir

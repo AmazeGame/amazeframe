@@ -223,7 +223,6 @@ handle_info({async_import,{ok,RootId,File}},State=#state{flush_status = flushing
 				State#state{file_list_table = NewFileTimes,flush_status = idle};
 			true ->
 				put({filetime, RootId}, NewFileTimes),
-%%				io:format("[ok]left files:~p~n",[FileCount - length(NewFileTimes)]),
 				State
 		end,
 	{noreply, NewState};

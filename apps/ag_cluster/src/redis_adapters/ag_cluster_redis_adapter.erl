@@ -435,7 +435,6 @@ eval_redis_lua(?DELETE_BY_INDEX, Key, Args) ->
 
 eval_redis_lua(?UPDATE, Update, Key, Args) ->
     Sha = ag_cluster_variable:getv(<<"cluster_reids.lua">>),
-    io:format("~p~n",[Sha]),
     Json = agb_json:encode(Args),
     Command = ["EVALSHA", agb_convertor:to_string(Sha), 2, ?UPDATE, ?ADD_SLOT_KEY(Key), Json | Update],
     case eval_sha_lua(<<"cluster_reids.lua">>, Command) of

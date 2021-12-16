@@ -23,9 +23,10 @@ init(_) ->
     #{}.
 
 apply(_Meta, {watch, Pid}, State) ->
+    ?LOG_INFO("---------watch :~p~n",[Pid]),
     {State, ok, [{monitor, process, Pid}]};
-apply(_Meta, {down, Pid, _}, State) ->
-    ?LOG_INFO("---------nodedown node :~p~n", [node(Pid)]),
+apply(_Meta, {down, Pid, _X}, State) ->
+    ?LOG_INFO("---------nodedown node :~p ~p~n", [node(Pid),_X]),
     case ra_leaderboard:lookup_leader(ag_node_ra:get_cluster_name()) of
         {_, Node} when Node == node() ->
             DownServerId = ag_node_ra:get_server_id_by_node(node(Pid)),
@@ -35,9 +36,11 @@ apply(_Meta, {down, Pid, _}, State) ->
     end,
     {State, ok, []};
 apply(_, {timeout, on_leader}, State) ->
+    ?LOG_INFO("--------- timeout,on_leader~n"),
     ag_node_ra:on_enter_leader(),
     {State, ok, []};
-apply(_, _, State) ->
+apply(_Meta, _A, State) ->
+    ?LOG_INFO("apply:~p~n",[_A]),
     {State, ok, []}.
 
 state_enter(leader, _) ->
@@ -46,7 +49,8 @@ state_enter(leader, _) ->
 state_enter(follower, _) ->
     ?LOG_INFO("---------node:~p enter follower", [node()]),
     [];
-state_enter(_, _) ->
+state_enter(Act, _) ->
+    ?LOG_INFO("state_enter:~p~n",[Act]),
     [].
 
 
