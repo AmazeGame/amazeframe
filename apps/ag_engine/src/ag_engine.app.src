@@ -1,0 +1,16 @@
+{application, ag_engine, [
+    {description, "amaze game engine core application"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        gpb,
+        msgpack,
+        ag_cluster,
+        ag_debuglogger,
+        ag_idcreator
+    ]},
+    {mod, {ag_engine_app, []}},
+    {env, []}]
+}.

@@ -1,0 +1,14 @@
+{application, ag_gateway, [
+    {description, "An gateway application"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        cowboy,
+        gun,
+        ag_engine
+    ]},
+    {mod, {ag_gateway, []}},
+    {env, []}
+]}.
