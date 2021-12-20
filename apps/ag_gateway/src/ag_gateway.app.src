@@ -6,9 +6,8 @@
         kernel,
         stdlib,
         cowboy,
-        gun,
-        ag_engine
+        gun
     ]},
-    {mod, {ag_gateway, []}},
+    {mod, {ag_gateway_app, []}},
     {env, []}
 ]}.

@@ -52,7 +52,8 @@ start_link() ->
     {ok, {SupFlags :: supervisor:sup_flags(), [ChildSpec :: supervisor:child_spec()]}}
     | ignore.
 init([]) ->
-    {ok, BizList} = application:get_env(biz_list),
+    {ok, BizList} = application:get_env(ag_bizlogger,biz_list),
+    
     Fun =
         fun(#{biz := Biz} = BizConfig) ->
             Name = atom_to_list(ag_bizlogger_process_sup) ++ "_" ++ atom_to_list(Biz),

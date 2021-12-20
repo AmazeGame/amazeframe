@@ -25,12 +25,6 @@
 
 -define(SERVER, ?MODULE).
 
--ifdef(use_amaze_application).
--define(PUT_LAUNCH_STATE(State), aga_launch_state:init(), aga_launch_state:put(ag_engine, State)).
--else.
--define(PUT_LAUNCH_STATE(State), ok).
--endif.
-
 -record(state, {}).
 
 %%%===================================================================
@@ -79,7 +73,6 @@ init([]) ->
     ag_engine_protocol_codec:init(),
     ag_engine_worker_module:init(),
     ag_engine_gateway_module:init(),
-    ?PUT_LAUNCH_STATE(running),
     ag_eventdispatcher_process:fire(game_init, #{}),
     {ok, #state{}}.
 

@@ -14,8 +14,7 @@
     {registered, []},
     {applications, [
         kernel,
-        stdlib,
-        ag_bizlogger
+        stdlib
     ]},
     {mod, {ag_monitor_app, []}},
     {env, []}

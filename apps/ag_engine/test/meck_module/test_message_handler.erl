@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
-%%% @author Adrianx Lau <adrianx.lau@gmail.com>
-%%% @copyright (C) 2017, 
+%%% @author BlackCat 
+%%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
+%%% @copyright (C) 2021, AmazeGame
 %%% @doc
-%%%
 %%% @end
-%%% Created : 31. 十月 2017 下午7:02
+%%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
 -module(test_message_handler).
 -author("Adrianx Lau <adrianx.lau@gmail.com>").

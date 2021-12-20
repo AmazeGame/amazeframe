@@ -1,16 +1,16 @@
 %%%-------------------------------------------------------------------
 %%% @author BlackCat 
-%%% @copyright (C) 2019, Harbour Studios
+%%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
+%%% @copyright (C) 2021, AmazeGame
 %%% @doc
-%%% 账号绑定fb
 %%% @end
-%%% Created : 16. 五月 2019 12:14
+%%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
 -module(test_platform_fb).
 
 -behaviour(ag_engine_platform).
 
--include_lib("ag_base/include/ag_debuglogger.hrl").
+-include_lib("ag_base/include/agb_debuglogger.hrl").
 -include_lib("ag_engine/include/ag_engine_core_defines.hrl").
 
 -export([

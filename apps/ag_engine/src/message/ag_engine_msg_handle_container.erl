@@ -22,11 +22,7 @@
     ok.
 init() ->
     ?LOG_DEBUG("ag_engine_msg_handle_container init"),
-    agb_ets:init(msg_table_name(), [{keypos, #msg_handler_table.msg_name}]),
     scan_behaviour().
-
-msg_table_name() ->
-    '#$$message_table_name'.
 
 scan_behaviour() ->
     Mods = agb_behaviour:get_behaviour_modules(ag_engine_message_handler),
@@ -66,7 +62,7 @@ scan_behaviour() ->
 lookup_handler(MsgName) when is_list(MsgName) ->
     lookup_handler(list_to_binary(MsgName));
 lookup_handler(MsgName) ->
-    case ets:lookup(msg_table_name(), MsgName) of
+    case ag_engine_msg_variable:geto(MsgName) of
         [] ->
             undefined;
         [#msg_handler_table{msg_handler = Handler, roleworker_handle = false}] ->
@@ -81,7 +77,7 @@ add_handler(MsgName, Handler) when is_list(MsgName) ->
     add_handler(list_to_binary(MsgName), Handler);
 add_handler(MsgName, Handler) ->
     Object = #msg_handler_table{msg_name = MsgName, msg_handler = Handler, roleworker_handle = false},
-    agb_ets:put(msg_table_name(), Object),
+    ag_engine_msg_variable:put(Object),
     ok.
 
 -spec add_handler(MsgName :: string() | binary(), Handler :: module(), ShadowHandle :: boolean()) ->
@@ -90,7 +86,7 @@ add_handler(MsgName, Handler, ShadowHandle) when is_list(MsgName) ->
     add_handler(list_to_binary(MsgName), Handler, ShadowHandle);
 add_handler(MsgName, Handler, ShadowHandle) ->
     Object = #msg_handler_table{msg_name = MsgName, msg_handler = Handler, roleworker_handle = ShadowHandle},
-    agb_ets:put(msg_table_name(), Object),
+    ag_engine_msg_variable:put(Object),
     ok.
 
 -spec remove_handler(MsgName :: string() | binary()) ->
@@ -98,5 +94,4 @@ add_handler(MsgName, Handler, ShadowHandle) ->
 remove_handler(MsgName) when is_list(MsgName) ->
     remove_handler(list_to_binary(MsgName));
 remove_handler(MsgName) ->
-    agb_ets:delete(msg_table_name(), MsgName),
-    ok.
+    ag_engine_msg_variable:delete(MsgName).

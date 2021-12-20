@@ -1,16 +1,16 @@
 %%%-------------------------------------------------------------------
 %%% @author BlackCat 
-%%% @copyright (C) 2019, Harbour Studios
+%%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
+%%% @copyright (C) 2021, AmazeGame
 %%% @doc
-%%%
 %%% @end
-%%% Created : 05. 七月 2019 17:45
+%%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
 -module(test_authenticate).
 
 -behaviour(ag_engine_authenticate).
 
--include_lib("ag_base/include/ag_debuglogger.hrl").
+-include_lib("ag_base/include/agb_debuglogger.hrl").
 -include_lib("ag_engine/include/ag_engine_core_defines.hrl").
 %% API
 -export([validate/2, sign/1, check_peer_time/1]).

@@ -30,16 +30,7 @@
 -record(auth_type, {type :: term(), module :: module()}).
 
 init() ->
-    case ets:info(table()) of
-        undefined ->
-            ets:new(table(), [public, set, named_table, {keypos, #auth_type.type}]);
-        _ ->
-            ignore
-    end,
     scan_behaviour().
-
-table() ->
-    'ts_game_thirdplatform'.
 
 scan_behaviour() ->
     Mods = agb_behaviour:get_behaviour_modules(?MODULE),
@@ -48,7 +39,7 @@ scan_behaviour() ->
             Types = Mod:auth_types(),
             lists:foreach(
                 fun(Type) ->
-                    ets:insert(table(), #auth_type{type = Type, module = Mod})
+                    ag_engine_3platform_variable:puto(#auth_type{type = Type, module = Mod})
                 end,
                 Types
             )
@@ -59,10 +50,10 @@ scan_behaviour() ->
 lookup_module(Type) when is_list(Type) ->
     lookup_module(list_to_binary(Type));
 lookup_module(Type) when is_binary(Type) ->
-    case ets:lookup(table(), Type) of
-        [] ->
+    case ag_engine_3platform_variable:geto(Type) of
+        undefined ->
             undefined;
-        [#auth_type{module = Handler} | _] ->
+        #auth_type{module = Handler} ->
             Handler
     end.
 

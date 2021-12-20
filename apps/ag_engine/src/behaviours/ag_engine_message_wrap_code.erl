@@ -19,32 +19,27 @@
     pack_info/1
 ]).
 
--define(ETS_CODENAME, '$$ets_code_name').
-
 -spec init() ->
     ok.
 init() ->
-    agb_ets:init(table()),
     Modules = agb_behaviour:get_behaviour_modules(?MODULE),
     lists:foreach(
         fun(Module) ->
             Objects = Module:get_infos(),
             check(Objects),
-            agb_ets:put(table(), Objects)
+            ag_engine_code_variable:puto(Objects)
         end,
         Modules
     ).
 
-table() ->
-    ?ETS_CODENAME.
 
 -spec pack_info(Message :: map()) ->
     map().
 pack_info(#{?MESSAGE_ERROR_CODE_KEY:=Code} = Message) ->
-    case agb_ets:lookup(table(), Code) of
-        [] ->
+    case ag_engine_code_variable:getv(Code) of
+        undefined ->
             Message;
-        {_, Info} ->
+        Info ->
             Message#{?MESSAGE_ERROR_INFO_KEY=>Info}
     end;
 pack_info(Message) ->
@@ -53,8 +48,8 @@ pack_info(Message) ->
 check(Objects) ->
     lists:foreach(
         fun({Key, Value}) ->
-            case agb_ets:lookup(table(), Key) of
-                [] ->
+            case ag_engine_code_variable:geto(Key) of
+                undefined ->
                     ok;
                 Object ->
                     ?LOG_WARNING("Code:~p has been input by ~p~n", [{Key, Value}, Object])

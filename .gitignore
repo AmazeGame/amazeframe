@@ -36,3 +36,4 @@ rebar.lock
 .vscode
 *.crashdump
 .node_data_dir
+optest/

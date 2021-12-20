@@ -33,23 +33,19 @@
 -define(KEY_GATEWAY_MODULE, gateway_module).
 
 init() ->
-    agb_ets:init(table()),
     scan_behaviour().
-
-table() ->
-    'ts_game_gateway_module'.
 
 scan_behaviour() ->
     case agb_behaviour:get_behaviour_modules(?MODULE) of
         [] ->
-            agb_ets:put(table(), {?KEY_GATEWAY_MODULE, undefined});
+            ag_engine_variable:put(?KEY_GATEWAY_MODULE,undefined);
         [Mod | _] ->
             ?LOG_DEBUG("ag_engine_worker_module scan_behaviour:~p~n", [Mod]),
-            agb_ets:put(table(), {?KEY_GATEWAY_MODULE, Mod})
+            ag_engine_variable:put(?KEY_GATEWAY_MODULE,Mod)
     end.
 
 worker_module() ->
-    agb_ets:get(table(), ?KEY_GATEWAY_MODULE).
+    ag_engine_variable:getv(?KEY_GATEWAY_MODULE).
 
 -spec message_to_gate_client(GatePid :: pid(), MsgObject :: term()) ->
     ok| {message_to_client, term()}.

@@ -17,30 +17,21 @@
     on_login_online_player/1
 ]).
 
-table_name() ->
-    'login_event_module_ets'.
-
 -spec init() ->
     ok.
 init() ->
-    Table = agb_ets:init(table_name()),
-    scan_behaviour(Table).
+    scan_behaviour().
 
-scan_behaviour(Table) ->
+scan_behaviour() ->
     case agb_behaviour:get_behaviour_modules(?MODULE) of
         [] ->
             ok;
         [Module | _] ->
-            agb_ets:put(Table, {driver, Module}), ok
+            ag_engine_variable:put(login_driver, Module)
     end.
 
 driver() ->
-    case ets:lookup(table_name(), driver) of
-        [] ->
-            undefined;
-        [{driver, Module}] ->
-            Module
-    end.
+    ag_engine_variable:getv(login_driver).
 
 -spec on_login_online_player(Content :: map()) ->
     {ag_engine_core:operation_type(), map()}.

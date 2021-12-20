@@ -28,11 +28,7 @@
 -spec init() ->
     ok.
 init() ->
-    agb_ets:init(table()),
     scan_behaviours().
-
-table() ->
-    'ag_engine_protocol_codec'.
 
 scan_behaviours() ->
     Modules = agb_behaviour:get_behaviour_modules(?MODULE),
@@ -40,7 +36,7 @@ scan_behaviours() ->
         fun(Module) ->
             Protocol = Module:protocol_name(),
             Module:init(),
-            agb_ets:put(table(), Protocol, Module)
+            ag_engine_proto_codec_variable:put(Protocol, Module)
         end,
         Modules
     ).
@@ -112,10 +108,10 @@ unpack_and_decode(Binary, Binaries) ->
 codec_from_protocol(<<"json">>) ->
     ?MODULE;
 codec_from_protocol(Protocol) ->
-    case agb_ets:lookup(table(), Protocol) of
-        [] ->
+    case ag_engine_proto_codec_variable:getv(Protocol) of
+        undefined ->
             ?MODULE;
-        {_, Module} ->
+        Module ->
             Module
     end.
 

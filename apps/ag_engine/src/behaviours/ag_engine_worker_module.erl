@@ -53,11 +53,7 @@
 -define(KEY_WORKER_MODULE, worker_module).
 
 init() ->
-    agb_ets:init(table()),
     scan_behaviour().
-
-table() ->
-    'ag_engine_worker_module'.
 
 scan_behaviour() ->
     case application:get_env(ag_engine, is_use_roleworker) of
@@ -67,14 +63,14 @@ scan_behaviour() ->
                     agb_error:error("unfound roleworker module");
                 [Mod | _] ->
                     ?LOG_DEBUG("ag_engine_worker_module scan_behaviour:~p~n", [Mod]),
-                    agb_ets:put(table(), {?KEY_WORKER_MODULE, Mod})
+                    ag_engine_variable:put(?KEY_WORKER_MODULE, Mod)
             end;
         _ ->
-            agb_ets:put(table(), {?KEY_WORKER_MODULE, undefined})
+            ag_engine_variable:put({?KEY_WORKER_MODULE, undefined})
     end.
 
 worker_module() ->
-    agb_ets:get(table(), ?KEY_WORKER_MODULE).
+    ag_engine_variable:getv(?KEY_WORKER_MODULE).
 
 -spec worker_create_start(user_info(), pid(), node()) ->
     false | tuple() | ignore.

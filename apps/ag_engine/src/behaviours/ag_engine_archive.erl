@@ -23,25 +23,21 @@
     load_user/1
 ]).
 
-table_name() ->
-    'archive_module_ets'.
-
 -spec init() ->
     ok.
 init() ->
-    Table = agb_ets:init(table_name()),
-    scan_behaviour(Table).
+    scan_behaviour().
 
-scan_behaviour(Table) ->
+scan_behaviour() ->
     case agb_behaviour:get_behaviour_modules(?MODULE) of
         [] ->
             ok;
         [Module | _] ->
-            agb_ets:put(Table, {driver, Module}), ok
+            ag_engine_variable:put(archive_driver,Module) 
     end.
 
 driver() ->
-    agb_ets:get(table_name(), driver).
+    ag_engine_variable:getv(archive_driver).
 
 -spec create_user(Context :: term()) ->
     term().

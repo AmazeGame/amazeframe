@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @author BlackCat 
-%%% @copyright (C) 2019, Harbour Studios
+%%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
+%%% @copyright (C) 2021, AmazeGame
 %%% @doc
-%%%
 %%% @end
-%%% Created : 17. 七月 2019 19:45
+%%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
 -module(test_core_SUITE).
 

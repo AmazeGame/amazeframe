@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @author BlackCat 
-%%% @copyright (C) 2019, Harbour Studios
+%%% @author adrianx  <adrianx.lau@gmail.com> <adrianx@163.com>
+%%% @copyright (C) 2021, AmazeGame
 %%% @doc
-%%%
 %%% @end
-%%% Created : 08. 七月 2019 15:43
+%%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
 
 -define(MSG_GATE_TEST1,<<"msg_gate_test">>).

@@ -9,6 +9,7 @@
 -module(ag_engine_authenticate).
 
 -include_lib("ag_base/include/agb_debuglogger.hrl").
+
 -include("ag_engine_core_defines.hrl").
 -include("ag_engine.hrl").
 
@@ -41,16 +42,16 @@
     init/0
 ]).
 
+
 -spec init() ->
     any().
 init() ->
-    agb_ets:init(table()),
     case application:get_env(auth_driver) of
         undefined ->
-            agb_ets:put(table(), sign_driver, ag_engine_inner_authenticate),
-            agb_ets:put(table(), peer_time_checker, ag_engine_inner_authenticate),
-            agb_ets:put(table(), auth_driver, ag_engine_inner_authenticate),
-            agb_ets:put(table(), package_number_dirver, ag_engine_inner_check_packagenumber);
+            ag_engine_variable:put(sign_driver,ag_engine_inner_authenticate),
+            ag_engine_variable:put(peer_time_checker,ag_engine_inner_authenticate),
+            ag_engine_variable:put(auth_driver,ag_engine_inner_authenticate),
+            ag_engine_variable:put(package_number_dirver,ag_engine_inner_check_packagenumber);
         {ok, Driver} ->
             case agb_behaviour:check_behaviour(Driver, ?MODULE) of
                 true ->
@@ -58,10 +59,10 @@ init() ->
                     SignDriver = get_sign_driver(Driver),
                     PeerTimeChecker = get_peer_timer_checker(Driver),
                     CheckPackageNumber = get_check_package_number(Driver),
-                    agb_ets:put(table(), sign_driver, SignDriver),
-                    agb_ets:put(table(), auth_driver, ValidateDriver),
-                    agb_ets:put(table(), peer_time_checker, PeerTimeChecker),
-                    agb_ets:put(table(), check_package_number, CheckPackageNumber);
+                    ag_engine_variable:put(sign_driver,SignDriver),
+                    ag_engine_variable:put(peer_time_checker,PeerTimeChecker),
+                    ag_engine_variable:put(auth_driver,ValidateDriver),
+                    ag_engine_variable:put(package_number_dirver,CheckPackageNumber);
                 false ->
                     false
             end
@@ -94,20 +95,17 @@ get_check_package_number(Driver) ->
             ag_engine_inner_check_packagenumber
     end.
 
-table() ->
-    'ets_ts_game_authenticate'.
-
 driver() ->
-    agb_ets:get(table(), auth_driver).
+    ag_engine_variable:getv(auth_driver).
 
 sign_driver() ->
-    agb_ets:get(table(), sign_driver).
+    ag_engine_variable:getv(sign_driver).
 
 peertime_checker() ->
-    agb_ets:get(table(), peer_time_checker).
-
+    ag_engine_variable:getv(peer_time_checker).
+    
 package_number_dirver() ->
-    agb_ets:get(table(), check_package_number).
+    ag_engine_variable:getv(check_package_number).
 
 -spec validate(PeerInfo :: map(), LocalSetting :: map()) ->
     true|false|time_out|require_version|p_no|{error, ErrCode :: integer()}.
