@@ -33,11 +33,11 @@ end_per_testcase(_Case, _Config) ->
     ok.
 
 write(_) ->
-    ag_bizlogger:write_log(bi, #{<<"key">> => test}),
-    ag_bizlogger:write_log(bi, #{<<"key">> => test, <<"app_id">> => <<"1">>, <<"host_name">> => <<"2">>, <<"date">> => <<"DD/Mon/YYYY:hh:mm:ss +0000">>}),
+    ag_bizlogger_app:write_log(bi, #{<<"key">> => test}),
+    ag_bizlogger_app:write_log(bi, #{<<"key">> => test, <<"app_id">> => <<"1">>, <<"host_name">> => <<"2">>, <<"date">> => <<"DD/Mon/YYYY:hh:mm:ss +0000">>}),
 
-    ag_bizlogger:write_log(op, #{<<"key">> => test}),
-    ag_bizlogger:write_log(op, "log is string"),
-    ag_bizlogger:write_log(op, <<"log is binary">>),
-    ?assertException(error, _, ag_bizlogger:write_log(error, #{<<"key">> => test})).
+    ag_bizlogger_app:write_log(op, #{<<"key">> => test}),
+    ag_bizlogger_app:write_log(op, "log is string"),
+    ag_bizlogger_app:write_log(op, <<"log is binary">>),
+    ?assertException(error, _, ag_bizlogger_app:write_log(error, #{<<"key">> => test})).
 
