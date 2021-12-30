@@ -102,10 +102,17 @@ remove_member(undefined) ->
     ok;
 remove_member(ServerId = {_, RNode}) ->
     ClusterName = get_cluster_name(),
-    MasterId = ra_leaderboard:lookup_leader(ClusterName),
     NodeInfo = #ag_node_info{members = Members} = ag_node_cluster:get_node_info(ClusterName),
+    {_, MasterNode} = MasterId = ra_leaderboard:lookup_leader(ClusterName),
     NewNodes = lists:filter(fun({_, Node}) -> RNode =/= Node end, Members),
-    NewNodeInfo = NodeInfo#ag_node_info{members = NewNodes},
+    MasterId1 =
+        case MasterNode == RNode of
+            true ->
+                undefined;
+            false ->
+                MasterId
+        end,
+    NewNodeInfo = NodeInfo#ag_node_info{master_server = MasterId1, members = NewNodes},
     ag_node_cluster:set_node_info(NewNodeInfo),
     Result = ra:remove_member(MasterId, ServerId),
     ?LOG_DEBUG("--------remove_member MasterId:~p result:~p~n", [MasterId, Result]),
@@ -141,20 +148,10 @@ master() ->
 %%%===================================================================
 
 build_server_id() ->
-    {get_node_name(), node()}.
+    {get_ra_node_name(), node()}.
 
-get_node_name() ->
-    Prefix =
-        case application:get_env(ag_node, node_name_prefix) of
-            'undefined' ->
-                "node";
-            {ok, Node} ->
-                Node
-        end,
-    PrefixB = agb_convertor:to_binary(Prefix),
-    SnowflakeId = ag_idcreator:gen_newid(snowflake),
-    IdBin = agb_convertor:to_binary(SnowflakeId),
-    binary_to_atom(<<PrefixB/binary, IdBin/binary>>, utf8).
+get_ra_node_name() ->
+    node().
 
 add_machine() ->
     {module, ag_machine_node, #{}}.

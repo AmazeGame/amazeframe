@@ -98,7 +98,7 @@ start_link() ->
 init([]) ->
     process_flag(trap_exit, true),
     ServerId = ag_node_ra:build_server_id(),
-    ag_node_variable:put(server_id,ServerId),
+    ag_node_variable:put(server_id, ServerId),
     self() ! ?CHECK_NODE_INFO,
     {ok, #state{}}.
 
@@ -119,6 +119,8 @@ init([]) ->
     {stop, Reason :: term(), NewState :: #state{}}).
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
+%%handle_call(get_ready_flag, _From, #state{ready = Ready} = State) ->
+%%    {reply, Ready, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -172,7 +174,7 @@ handle_info(?CHECK_NODE_INFO, State) ->
         undefined ->
             start_ra_master(State);
         NodeInfo ->
-            ?LOG_INFO("check_node:~p~n",[NodeInfo]),
+            ?LOG_INFO("check_node:~p~n", [NodeInfo]),
             case check_node(NodeInfo) of
                 master_ready ->
                     ?LOG_INFO("master_ready~n"),
@@ -221,10 +223,12 @@ handle_info(_Info, State) ->
 %%--------------------------------------------------------------------
 -spec(terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()),
     State :: #state{}) -> term()).
-terminate(Reason, _State) ->
+terminate(Reason, #state{ready = true}) ->
     ?LOG_ERROR("ag_node_connect_process terminate reason:~p~n", [Reason]),
     ServerId = ag_node_ra:get_local_server_id(),
     ag_node_ra:remove_member(ServerId),
+    ok;
+terminate(_Reason, _) ->
     ok.
 
 %%--------------------------------------------------------------------
@@ -245,7 +249,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 check_node(#ag_node_info{master_server = {_, MasterNode}, members = Members}) ->
-    ?LOG_INFO("check_node:master-> ~p~n",[MasterNode]),
+    ?LOG_INFO("check_node:master-> ~p~n", [MasterNode]),
     case net_kernel:connect_node(MasterNode) of
         true ->
             ?LOG_DEBUG("check_node node:~p is connect~n", [MasterNode]),
@@ -293,7 +297,7 @@ add_to_ra_cluster(
             ?LOG_WARNING("add_to_ra_cluster timeout master:~p~n", [MasterNode]),
             erlang:send_after(100, self(), ?CHECK_NODE_INFO),
             {noreply, State#state{retry_num = RNum + 1}};
-        {error, Reason} ->
+        Reason ->
             agb_error:error("add node:[~p] to ra cluster master:[~p] error reason:~p~n",
                 [node(), MasterNode, Reason])
     end.
@@ -321,7 +325,7 @@ start_ra_master(State = #state{start_ra_server = false}) ->
         ok ->
             ?LOG_INFO("ag_node_ra:start_node()~n"),
             LocalServerId = ag_node_ra:get_local_server_id(),
-            ?LOG_INFO("ag_node_ra:get_local_server_id:~p~n",[LocalServerId]),
+            ?LOG_INFO("ag_node_ra:get_local_server_id:~p~n", [LocalServerId]),
             ag_node_cluster:set_node_info(
                 #ag_node_info{
                     cluster = ag_node_ra:get_cluster_name(),
@@ -351,3 +355,5 @@ start_ra_salve(State = #state{start_ra_server = false}) ->
 
 send_state_change_event(#state{node_state = NodeState, state_change_event_accepts = Accepts}) ->
     lists:foreach(fun(Pid) -> Pid ! {?NODE_STATE_CHANGE_EVENT, NodeState} end, Accepts).
+
+
