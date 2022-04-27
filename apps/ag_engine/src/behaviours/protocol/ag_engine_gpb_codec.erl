@@ -9,8 +9,8 @@
 -module(ag_engine_gpb_codec).
 
 -behaviour(ag_engine_protocol_codec).
--include("ag_engine_core_defines.hrl").
--include("ag_engine_code_defines.hrl").
+-include("../../../include/ag_engine_core_defines.hrl").
+-include("../../../include/ag_engine_code_defines.hrl").
 -include_lib("kernel/include/file.hrl").
 %% API
 -export([
@@ -43,11 +43,11 @@ protocol_name() ->
     <<"gpb">>.
 
 base_message(string) ->
-    agb_string:sprintf("message base_message {\n\tstring ~s = 1;\n}\n", [?MESSAGE_NAME_KEY]);
+    agb_string:sprintf("message base_message {\n\trequired string ~s = 1;\n}\n", [?MESSAGE_NAME_KEY]);
 base_message(int32) ->
-    agb_string:sprintf("message base_message {\n\tint32 ~s = 1;\n}\n", [?MESSAGE_NAME_KEY]);
+    agb_string:sprintf("message base_message {\n\trequired int32 ~s = 1;\n}\n", [?MESSAGE_NAME_KEY]);
 base_message(uint32) ->
-    agb_string:sprintf("message base_message {\n\tuint32 ~s = 1;\n}\n", [?MESSAGE_NAME_KEY]).
+    agb_string:sprintf("message base_message {\n\trequired uint32 ~s = 1;\n}\n", [?MESSAGE_NAME_KEY]).
 
 scan_pb_module() ->
     Functions = [{encode_msg, 2}, {decode_msg, 2}, {get_msg_names, 0}, {get_msg_defs, 0}],

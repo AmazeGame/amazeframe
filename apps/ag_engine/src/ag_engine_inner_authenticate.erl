@@ -7,6 +7,9 @@
 %%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
 -module(ag_engine_inner_authenticate).
+
+-behaviour(ag_engine_authenticate).
+
 -include_lib("ag_base/include/agb_debuglogger.hrl").
 -include("ag_engine_core_defines.hrl").
 -include("ag_engine.hrl").

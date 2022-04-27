@@ -6,8 +6,8 @@
 %%% @end
 %%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
--ifndef(__GEN_GAME_CORE_DEFINES_HRL_).
--define(__GEN_GAME_CORE_DEFINES_HRL_,1).
+-ifndef(__ENGINE_CORE_DEFINES_HRL_).
+-define(__ENGINE_CORE_DEFINES_HRL_,1).
 
 
 -define(MESSAGE_NAME_KEY,           <<"name">>).

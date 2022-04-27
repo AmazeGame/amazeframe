@@ -66,7 +66,7 @@ scan_behaviour() ->
                     ag_engine_variable:put(?KEY_WORKER_MODULE, Mod)
             end;
         _ ->
-            ag_engine_variable:put({?KEY_WORKER_MODULE, undefined})
+            ag_engine_variable:put(?KEY_WORKER_MODULE, undefined)
     end.
 
 worker_module() ->

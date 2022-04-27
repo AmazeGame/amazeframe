@@ -55,9 +55,9 @@ init() ->
         {ok, Driver} ->
             case agb_behaviour:check_behaviour(Driver, ?MODULE) of
                 true ->
-                    ValidateDriver = get_validate_driver(Driver),
                     SignDriver = get_sign_driver(Driver),
                     PeerTimeChecker = get_peer_timer_checker(Driver),
+                    ValidateDriver = get_validate_driver(Driver),
                     CheckPackageNumber = get_check_package_number(Driver),
                     ag_engine_variable:put(sign_driver,SignDriver),
                     ag_engine_variable:put(peer_time_checker,PeerTimeChecker),
@@ -95,7 +95,7 @@ get_check_package_number(Driver) ->
             ag_engine_inner_check_packagenumber
     end.
 
-driver() ->
+auth_driver() ->
     ag_engine_variable:getv(auth_driver).
 
 sign_driver() ->
@@ -110,8 +110,8 @@ package_number_dirver() ->
 -spec validate(PeerInfo :: map(), LocalSetting :: map()) ->
     true|false|time_out|require_version|p_no|{error, ErrCode :: integer()}.
 validate(PeerInfo, LocalSetting) ->
-    Driver = driver(),
-    Driver:validate(PeerInfo, LocalSetting).
+    AuthDriver = auth_driver(),
+    AuthDriver:validate(PeerInfo, LocalSetting).
 
 -spec sign(Args :: list()) ->
     binary().

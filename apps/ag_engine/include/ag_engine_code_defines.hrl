@@ -6,8 +6,8 @@
 %%% @end
 %%% Created : 2021.11.04
 %%%-------------------------------------------------------------------
--ifndef(_GEN_GAME_CODE_DEFINES_HRL_).
--define(_GEN_GAME_CODE_DEFINES_HRL_,1).
+-ifndef(__ENGINE_CODE_DEFINES_HRL_).
+-define(__ENGINE_CODE_DEFINES_HRL_,1).
 
 
 -define(REQUEST_SUCCESSED,                                           				 0).
@@ -30,4 +30,4 @@
 
 
 
--endif. %%_GEN_GAME_CODE_DEFINES_HRL_
+-endif. %%__ENGINE_CODE_DEFINES_HRL_
